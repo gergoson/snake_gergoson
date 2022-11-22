@@ -7,6 +7,7 @@ from time import sleep
 
 delay = 0.2
 timee = 0
+devmode = True
 
 #Window
 wn = turtle.Screen()
@@ -34,6 +35,15 @@ pen2.hideturtle()
 pen2.goto(0, -280)
 pen2.write("Nothing", align="center", font=("Arial", 24, "normal"))
 
+pen3 = turtle.Turtle()
+pen3.speed(0)
+pen3.shape("square")
+pen3.color("white")
+pen3.penup()
+pen3.hideturtle()
+pen3.goto(270, 280)
+pen3.write("0", align="center", font=("Arial", 12, "normal"))
+
 #Score
 score = 0
 
@@ -53,7 +63,41 @@ point.color("gold")
 point.penup()
 point.goto(0,40)
 
-#Trail
+#Mimics
+mimic1 = turtle.Turtle()
+mimic1.shape("circle")
+mimic1.color("yellow")
+mimic1.penup()
+mimic1.goto(0,800)
+
+mimic2 = turtle.Turtle()
+mimic2.shape("circle")
+mimic2.color("yellow")
+mimic2.penup()
+mimic2.goto(0,800)
+
+#Mines
+mine1 = turtle.Turtle()
+mine1.shape("square")
+mine1.color("red")
+mine1.penup()
+mine1.goto(0,800)
+
+mine2 = turtle.Turtle()
+mine2.shape("square")
+mine2.color("red")
+mine2.penup()
+mine2.goto(0,800)
+
+mine3 = turtle.Turtle()
+mine3.shape("square")
+mine3.color("red")
+mine3.penup()
+mine3.goto(0,800)
+
+mine_time = False
+
+#Trails
 trails = []
 
 #Effects
@@ -169,26 +213,53 @@ def trail_increase():
   trails.append(new_trail)
 
 def point_respawn():
-    pr1 = randint(-7,7)
-    pr2 = randint(-7,7)
-    point.goto(pr1 * 40,pr2 * 40)
+  pr1 = randint(-14,14)
+  pr2 = randint(-14,14)
+  point.goto(pr1 * 20,pr2 * 20)
 
 def eff_clear():
   global delay
-  global wn
   global effect
+  global timee
 
+  timee = 0
   delay = 0.2
-  wn.bgcolor('black')
-  effect = 'none'
+  effect = 'Nothing'
+  mimic2.goto(0,800)
+  mimic1.goto(0,800)
+  mine1.goto(0,800)
+  mine2.goto(0,800)
+  mine3.goto(0,800)
+
+def mimic_respawn():
+  pr1 = randint(-7,7)
+  pr2 = randint(-7,7)
+  mimic1.goto(pr1 * 40,pr2 * 40)
+  pr3 = randint(-7,7)
+  pr4 = randint(-7,7)
+  mimic2.goto(pr3 * 40,pr4 * 40)
+
+def mine_respawn():
+  mine1.color('red')
+  mine2.color('red')
+  mine3.color('red')
+  pr1 = randint(-7,7)
+  pr2 = randint(-7,7)
+  mine1.goto(pr1 * 40,pr2 * 40)
+  pr3 = randint(-7,7)
+  pr4 = randint(-7,7)
+  mine2.goto(pr3 * 40,pr4 * 40)
+  pr5 = randint(-7,7)
+  pr6 = randint(-7,7)
+  mine3.goto(pr5 * 40,pr6 * 40)
 
 def effect_change():
   global delay
-  global wn
   global effect
+  global mine_time
 
   eff_clear()
-  eff_num = randint(1,7)
+  eff_num = randint(0,9)
   if eff_num == 1:
     delay = 0.1
     effect = 'Speed'
@@ -198,6 +269,7 @@ def effect_change():
     delay = 0.4
     effect = 'Slowness'
   if eff_num == 4:
+    delay = 0.16
     effect = 'Confusion'
   if eff_num == 5:
     trail_increase()
@@ -207,8 +279,15 @@ def effect_change():
     trail_increase()
     effect = 'Double Growth'
   if eff_num == 7:
-    delay = 0.06
+    delay = 0.05
     effect = 'Hyperspeed'
+  if eff_num == 8:
+    mimic_respawn()
+    effect = 'Mimics'
+  if eff_num == 9:
+    mine_respawn()
+    mine_time = True
+    effect = 'Mines'
 
 
 
@@ -226,21 +305,20 @@ wn.onkeypress(game_over, "g")
 while True:
   wn.update()
 
-  timee += 1
-
   #Player-Wall collision
-  if player.ycor() > 295:
+  if player.ycor() > 295 or player.ycor() < -295 or player.xcor() > 295 or player.xcor() < -295:
    sleep(0.5)
    game_over()
-  if player.ycor() < -295:
-   sleep(0.5)
-   game_over()
-  if player.xcor() > 295:
-   sleep(0.5)
-   game_over()
-  if player.xcor() < -295:
-   sleep(0.5)
-   game_over()
+
+  #Player-Mimic collision
+  if player.distance(mimic1) < 20 or player.distance(mimic2) < 20:
+    sleep(0.5)
+    game_over()
+
+  #Player-Mimic collision
+  if player.distance(mine1) < 20 or player.distance(mine2) < 20 or player.distance(mine3) < 20:
+    sleep(0.5)
+    game_over()
 
   #Point pickup
   if player.distance(point) < 20:
@@ -252,7 +330,9 @@ while True:
    effect_change()
    pen2.clear()
    pen2.write("{}".format(effect), align="center", font=("Arial", 24, "normal"))
-  
+
+  timee += 1
+
   #Move the end trails first in reverse order
   for index in range(len(trails)-1, 0, -1):
       x = trails[index-1].xcor()
@@ -276,6 +356,15 @@ while True:
   if timee > 20 and effect == "Catch!":
     point_respawn()
     timee = 0
+  if timee > 5 and effect == "Mines" and mine_time == True:
+    mine_time = False
+    mine1.color('black')
+    mine2.color('black')
+    mine3.color('black')
+
+  if devmode == True:
+   pen3.clear()
+   pen3.write("{}".format(timee), align="center", font=("Arial", 12, "normal"))
 
 
   sleep(delay)
