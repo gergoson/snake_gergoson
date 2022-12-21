@@ -407,7 +407,7 @@ def effect_change():
     score += 20
 
   eff_clear()
-  eff_num = randint(22,22)
+  eff_num = randint(0,23)
   if eff_num == 1:
     delay = 0.1
     effect = 'Speed'
